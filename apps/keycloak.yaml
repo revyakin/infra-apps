@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: keycloak
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: keycloak
+    targetRevision: 21.4.0
+    helm:
+      values: |
+        postgresql.enabled=false
+        externalDatabase:
+          host: "psqldb-playground-infra-vz9n.postgres.database.azure.com"
+          port: 5432
+          user: pgadmin
+          existingSecret: keycloak-database-password
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: keycloak
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
