@@ -13,7 +13,8 @@ spec:
     targetRevision: 21.4.0
     helm:
       values: |
-        postgresql.enabled=false
+        postgresql:
+          enabled: false
         externalDatabase:
           host: "psqldb-playground-infra-vz9n.postgres.database.azure.com"
           port: 5432
