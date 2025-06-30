@@ -1,0 +1,178 @@
+# Default values for thinkad-keycloak.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: "26.2.5"
+  pullPolicy: IfNotPresent
+
+container:
+  args:
+    - "start"
+
+  env:
+    - name: KC_BOOTSTRAP_ADMIN_USERNAME
+      secretKeyRef:
+        name: keycloak-admin-credentials
+        key: username
+
+    - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin-credentials
+          key: password
+
+    # In a production environment, add a TLS certificate to Keycloak to either end-to-end encrypt the traffic between
+    # the client or Keycloak, or to encrypt the traffic between your proxy and Keycloak.
+    # Respect the proxy headers forwarded by the reverse proxy
+    # In a production environment, verify which proxy type you are using, and restrict access to Keycloak
+    # from other sources than your proxy if you continue to use proxy headers.
+    - name: KC_PROXY_HEADERS
+      value: "xforwarded"
+
+    - name: KC_HTTP_ENABLED
+      value: "true"
+
+    # In this explorative setup, no strict hostname is set.
+    # For production environments, set a hostname for a secure setup.
+    - name: KC_HOSTNAME_STRICT
+      value: "false"
+
+    - name: KC_HEALTH_ENABLED
+      value: "true"
+
+    - name: 'KC_CACHE'
+      value: 'ispn'
+
+    # Use the Kubernetes configuration for distributed caches which is based on DNS
+    - name: 'KC_CACHE_STACK'
+      value: 'kubernetes'
+
+    # Passing the Pod's IP primary address to the JGroups clustering as this is required in IPv6 only setups
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+
+    # Instruct JGroups which DNS hostname to use to discover other Keycloak nodes
+    # Needs to be unique for each Keycloak cluster
+    - name: JAVA_OPTS_APPEND
+      value: '-Djgroups.dns.query="keycloak-discovery" -Djgroups.bind.address=$(POD_IP)'
+
+    - name: 'KC_DB'
+      value: 'postgres'
+
+    - name: 'KC_DB_URL_HOST'
+      value: 'psqldb-playground-infra-vz9n.postgres.database.azure.com'
+
+    - name: 'KC_DB_URL_DATABASE'
+      value: 'keycloak'
+
+    - name: 'KC_DB_USERNAME'
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-database-credentials
+          key: username
+
+    - name: 'KC_DB_PASSWORD'
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-database-credentials
+          key: password
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8080
+
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: keycloak.ioctal.co.ua
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: keycloak-tls
+      hosts:
+        - keycloak.ioctal.co.ua
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2000Mi
+  requests:
+    cpu: 500m
+    memory: 1700Mi
+
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 9000
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 9000
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
