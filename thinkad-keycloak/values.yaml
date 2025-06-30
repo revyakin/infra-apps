@@ -15,9 +15,10 @@ container:
 
   env:
     - name: KC_BOOTSTRAP_ADMIN_USERNAME
-      secretKeyRef:
-        name: keycloak-admin-credentials
-        key: username
+      valueFrom:
+        secretKeyRef:
+          name: keycloak-admin-credentials
+          key: username
 
     - name: KC_BOOTSTRAP_ADMIN_PASSWORD
       valueFrom:
