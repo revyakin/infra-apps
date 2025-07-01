@@ -16,7 +16,8 @@ spec:
       values: |
         ingress:
           enabled: true
-          annotations: []
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
           ingressClassName: nginx
           hosts:
             - nexus.ioctal.co.ua
