@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nexus
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  source:
+    repoURL: ghcr.io/stevehipwell/helm-charts
+    path: nexus3
+    targetRevision: 5.11.0
+    helm:
+      releaseName: nexus
+      values: |
+        ingress:
+          enabled: true
+          annotations:
+
+          ingressClassName:
+            - nginx
+          hosts:
+            - nexus.ioctal.co.ua
+          tls:
+            - hosts:
+                - nexus.ioctal.co.ua
+              secretName: nexus-tls
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nexus
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
