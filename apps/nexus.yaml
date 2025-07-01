@@ -8,7 +8,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: ghcr.io/stevehipwell/helm-charts
+    repoURL: https://stevehipwell.github.io/helm-charts
     path: nexus3
     targetRevision: 5.11.0
     helm:
