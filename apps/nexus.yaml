@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://stevehipwell.github.io/helm-charts
-    path: nexus3
+    chart: nexus3
     targetRevision: 5.11.0
     helm:
       releaseName: nexus
