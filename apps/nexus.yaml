@@ -16,8 +16,7 @@ spec:
       values: |
         ingress:
           enabled: true
-          annotations:
-
+          annotations: []
           ingressClassName: nginx
           hosts:
             - nexus.ioctal.co.ua
@@ -25,6 +24,7 @@ spec:
             - hosts:
                 - nexus.ioctal.co.ua
               secretName: nexus-tls
+
   destination:
     server: https://kubernetes.default.svc
     namespace: nexus
